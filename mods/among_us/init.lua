@@ -23,9 +23,9 @@ minetest.register_node("among_us:admin", {
 	}
 })
 
-steel_colors = {"White", "Black", "Red", "Yellow", "Green", "Blue"}
+steel = {"White", "Grey", "Darkgrey", "Black"}
 
-for i, color in ipairs(steel_colors) do
+for i, color in ipairs(steel) do
 	minetest.register_node("among_us:"..color:lower().."_steelblock", {
 		description = color.." Steel Block",
 		tiles = {"among_us_"..color:lower().."_steel_block.png"},
@@ -34,10 +34,46 @@ for i, color in ipairs(steel_colors) do
 	})
 end
 
+
+metal = {"Red", "Orange", "Green", "Blue"}
+
+for i, color in ipairs(metal) do
+	minetest.register_node("among_us:"..color:lower().."_metallist", {
+		description = color.." Metal List",
+		tiles = {"among_us_"..color:lower().."_metal_list.png"},
+		groups = {cracky = 1, level = 2},
+		--sounds =
+	})
+end
+
+tile = {"White", "Blackwhite", "Grey", "Black"}
+
+for i, color in ipairs(tile) do
+	minetest.register_node("among_us:"..color:lower().."_tile", {
+		description = color.." Tile",
+		tiles = {"among_us_"..color:lower().."_tile.png"},
+		groups = {cracky = 1, level = 2},
+		--sounds =
+	})
+end
+
+danger = {"Red", "Yellow"}
+
+for i, color in ipairs(danger) do
+	minetest.register_node("among_us:"..color:lower().."_danger", {
+		description = color.." Hazard Strip",
+		tiles = {"among_us_"..color:lower().."_danger.png"},
+		groups = {cracky = 1, level = 2},
+		--sounds =
+	})
+end
+
+local tasks = 2
+
 minetest.register_node("among_us:hologram", {
 		description = "Hologram",
 		drawtype = "plantlike",
-		tiles = {"hologram.png"},
+		tiles = {"among_us_hologram.png"},
 		groups = {cracky = 1, level = 2},
 		--sounds =
 	})
