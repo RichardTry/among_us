@@ -2,6 +2,15 @@ math.randomseed(os.time())
 
 among_us = {impostors = 1, impostors_list = {}, game_spawn = {x = 8, y = 21.5, z = 4}}
 
+local players = 0
+minetest.register_on_joinplayer(function(player)
+	players = players + 1
+end)
+minetest.register_on_leaveplayer(function(player)
+	players = players - 1
+end)
+
+
 local start_timer = false
 local until_start = 5
 
@@ -14,11 +23,27 @@ minetest.register_globalstep(function(dtime)
 			minetest.chat_send_all("Start in "..until_start.."...")
 			until_start = until_start - 1
 			if (until_start == 0) then
-				for _,player in ipairs(minetest.get_connected_players()) do
-					local deg = math.random() * math.pi * 2
-					player:set_pos({x = among_us.game_spawn.x + math.cos(deg) * 2, y = among_us.game_spawn.y, z = among_us.game_spawn.z + math.sin(deg) * 2})
-					player:set_look_pitch(0)
+				local impostors_numbers = {}
+				for i=1,among_us.impostors do
+					while true do
+						local rand = math.random(1, players)
+						minetest.chat_send_all("try "..rand)
+						if impostors_numbers[rand] == nil then
+							impostors_numbers[rand] = true
+							break
+						end
+					end
 				end
+				for i, player in ipairs(minetest.get_connected_players()) do
+					local deg = math.pi * 2 / players * i
+					player:set_pos({x = among_us.game_spawn.x + math.cos(deg) * 2, y = among_us.game_spawn.y, z = among_us.game_spawn.z + math.sin(deg) * 2})
+					player:set_look_vertical(0)
+					player:set_look_horizontal(deg + math.pi / 2)
+					if impostors_numbers[rand] ~= nil then
+						minetest.chat_send_all(player:get_name().." is an impostor!")
+					end
+				end
+				
 				start_timer = false
 				until_start = 5
 			end
@@ -68,9 +93,16 @@ end)
 minetest.register_chatcommand("impostors", {
     params = "<number>",
     description = "Set impostors number",
-    func = function( _ , number)
-        among_us.impostors = number
-        minetest.chat_send_all("Impostors number changed to " .. among_us.impostors)
+    func = function(name, number)
+    	number = tonumber(number)
+    	if number < 1 then
+    		minetest.chat_send_player(name, "Must be at least 1 impostor!")
+    	elseif number > players then
+    		minetest.chat_send_player(name, "Can't be more than "..(players - 1).." impostors!")
+    	else
+        	among_us.impostors = number
+        	minetest.chat_send_all("Impostors number changed to " .. among_us.impostors)
+        end
     end,
 })
 
@@ -101,7 +133,8 @@ minetest.register_node("among_us:admin", {
 			{-0.4375, -0.5, -0.4375, 0.4375, -0.4375, 0.375}, -- base
 			{-0.4375, -0.4375, 0.375, 0.4375, 0.3125, 0.4375}, -- screen
 		}
-	}
+	},
+	groups = {snappy = 1}
 })
 
 steel = {"White", "Grey", "Darkgrey", "Black"}
