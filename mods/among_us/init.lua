@@ -1,4 +1,85 @@
-among_us = {impostors = 1, }
+math.randomseed(os.time())
+
+among_us = {impostors = 1, impostors_list = {}, game_spawn = {x = 8, y = 21.5, z = 4}}
+
+local start_timer = false
+local until_start = 5
+
+local timer = 0
+
+minetest.register_globalstep(function(dtime)
+	timer = timer + dtime;
+	if timer >= 1 then
+		if (start_timer) then
+			minetest.chat_send_all("Start in "..until_start.."...")
+			until_start = until_start - 1
+			if (until_start == 0) then
+				for _,player in ipairs(minetest.get_connected_players()) do
+					local deg = math.random() * math.pi * 2
+					player:set_pos({x = among_us.game_spawn.x + math.cos(deg) * 2, y = among_us.game_spawn.y, z = among_us.game_spawn.z + math.sin(deg) * 2})
+					player:set_look_pitch(0)
+				end
+				start_timer = false
+				until_start = 5
+			end
+		end
+		timer = 0
+	end
+end)
+
+function among_us.get_formspec(name)
+    -- TODO: display whether the last guess was higher or lower
+
+    local formspec = {
+        "formspec_version[3]",
+        "size[6,3.476]",
+        "label[0.375,0.5;Impostors: ", minetest.formspec_escape(among_us.impostors), "]",
+        "button[0.375,0.8;0.4,0.4;minusimpostor;<]",
+        "button[1,0.8;0.4,0.4;plusimpostor;>]",
+    }
+
+    -- table.concat is faster than string concatenation - `..`
+    return table.concat(formspec, "")
+end
+
+function among_us.show_to(name)
+    minetest.show_formspec(name, "among_us:settings", among_us.get_formspec(name))
+end
+
+minetest.register_chatcommand("game", {
+    func = function(name)
+        among_us.show_to(name)
+    end,
+})
+
+minetest.register_on_player_receive_fields(function(player, formname, fields)
+    if formname ~= "among_us:settings" then
+        return
+    end
+
+    if fields.plusimpostor then
+        among_us.impostors = among_us.impostors + 1
+    end
+    if fields.minusimpostor then
+        among_us.impostors = among_us.impostors - 1
+    end
+end)
+
+minetest.register_chatcommand("impostors", {
+    params = "<number>",
+    description = "Set impostors number",
+    func = function( _ , number)
+        among_us.impostors = number
+        minetest.chat_send_all("Impostors number changed to " .. among_us.impostors)
+    end,
+})
+
+minetest.register_chatcommand("start", {
+    func = function(_)
+        start_timer = true
+    end,
+})
+
 
 minetest.register_node("among_us:admin", {
 	description = "Admin computer",
